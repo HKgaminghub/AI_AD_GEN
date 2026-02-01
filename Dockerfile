@@ -30,6 +30,7 @@ RUN mkdir -p static temp_storage && chmod 777 static temp_storage
 # Environment variables
 # PYTHONUNBUFFERED=1 ensures logs show up immediately
 ENV PYTHONUNBUFFERED=1
+ENV IMAGEMAGICK_BINARY=/usr/bin/magick
 
 # Render provides the PORT environment variable
 # Gunicorn command to run the application
