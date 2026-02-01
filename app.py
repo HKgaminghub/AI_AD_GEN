@@ -410,7 +410,8 @@ def generate_scene():
         
         # Generate scene using retry/rotation logic
         log_step(f"Sending request to DEAPI for {scene_key}...", "API")
-        success, error_msg = scene_service.generate_single_scene(
+        # Custom infinite retry setting
+        success_result = scene_service.generate_single_scene(
             main_module,
             scene_key,
             prompt,
@@ -418,14 +419,12 @@ def generate_scene():
             output_file,
             generate_scene_with_retry
         )
-        # Note regarding 'success' variable from scene_service: 
-        # generate_single_scene returns a dict, not tuple. Need to adapt.
         
-        if success.get("status") == "success":
+        # Check dictionary result
+        if success_result.get("status") == "success":
              log_step(f"Scene {scene_key} generated successfully: {output_file}", "SUCCESS")
-             # Cleanup handled by generate_scene function wrapper if needed, but here we just return
         else:
-             error_msg = success.get("error", "Unknown error")
+             error_msg = success_result.get("error", "Unknown error")
              log_step(f"Scene {scene_key} generation failed: {error_msg}", "ERROR")
              return jsonify({"error": f"Error generating scene: {error_msg}"}), 500
 
