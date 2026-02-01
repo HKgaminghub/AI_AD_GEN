@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+
+{% block title %}Leaderboard | AdGen.AI{% endblock %}
+
+{% block content %}
+<div class="container animate-fade">
+    <header style="margin-bottom: 4rem; text-align: center;">
+        <h1 style="font-size: 3.5rem; margin-bottom: 1rem;">Video <span
+                style="background: linear-gradient(to right, #fbbf24, #f59e0b); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Hall
+                of Fame</span></h1>
+        <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Top creators transforming visual ideas
+            into viral reality.</p>
+    </header>
+
+    <div class="glass-card" style="padding: 0; overflow: hidden;">
+        <div style="overflow-x: auto;">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th style="padding-left: 2.5rem;">Rank</th>
+                        <th>Creator</th>
+                        <th style="text-align: right; padding-right: 2.5rem;">Videos Generated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if leaderboard %}
+                    {% for user in leaderboard %}
+                    {% set rank = loop.index %}
+                    <tr {% if rank==1 %}style="background: rgba(251, 191, 36, 0.05);" {% endif %}>
+                        <td style="padding-left: 2.5rem; font-weight: 700; font-size: 1.1rem;">
+                            {% if rank == 1 %}
+                            <i class="fas fa-crown" style="color: #fbbf24; font-size: 1.2rem;"></i>
+                            {% elif rank == 2 %}
+                            <i class="fas fa-medal" style="color: #94a3b8; font-size: 1.1rem;"></i>
+                            {% elif rank == 3 %}
+                            <i class="fas fa-medal" style="color: #cd7f32; font-size: 1.1rem;"></i>
+                            {% else %}
+                            {{ rank }}
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 500;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div
+                                    style="width: 32px; height: 32px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--text-muted);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {{ user.username }}
+                                {% if rank == 1 %}
+                                <span
+                                    style="background: #fbbf24; color: #000; font-size: 0.65rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 4px; text-transform: uppercase;">Top
+                                    Creator</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td
+                            style="text-align: right; padding-right: 2.5rem; font-weight: 700; color: var(--primary); font-size: 1.1rem;">
+                            {{ user.video_count }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 4rem; color: var(--text-muted);">
+                            No videos generated yet. Be the first hero!
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

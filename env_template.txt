@@ -1,0 +1,74 @@
+# =====================================
+# API KEYS
+# =====================================
+GEMINI_API_KEY=AIzaSyAgsB75NP2T75WJADqAXjxMDcAw1sMExyk
+DEAPI_KEY=726|6XCIkgjt204bpswKNosb65nFpAcBo7hclNMGouli430cb314
+ELEVEN_API_KEY=2791046cacac777cba1b1b4bc8fcf2bb1c5f10227f633d5b66ca8dfc59e795a1
+
+# =====================================
+# SCENE IMAGE PATHS
+# =====================================
+SCENE1_IMAGE_PATH=d:/gemini/front.png
+SCENE2_IMAGE_PATH=d:/gemini/left.png
+SCENE3_IMAGE_PATH=d:/gemini/right.png
+SCENE4_IMAGE_PATH=d:/gemini/back.png
+
+# =====================================
+# VIDEO CONFIGURATION
+# =====================================
+TARGET_WIDTH=432
+TARGET_HEIGHT=768
+FPS=30
+FRAMES=120
+STEPS=1
+GUIDANCE=8
+DEAPI_MODEL=Ltxv_13B_0_9_8_Distilled_FP8
+MOTION=cinematic
+
+# =====================================
+# VOICEOVER CONFIGURATION
+# =====================================
+VOICE_ID=21m00Tcm4TlvDq8ikWAM
+ELEVEN_MODEL_ID=eleven_multilingual_v2
+VOICE_STABILITY=0.6
+VOICE_SIMILARITY_BOOST=0.7
+
+# =====================================
+# WHISPER CAPTION CONFIGURATION
+# =====================================
+WHISPER_MODEL_SIZE=small
+MAX_WORDS_PER_CAPTION=3
+
+# =====================================
+# GEMINI MODEL
+# =====================================
+GEMINI_MODEL=gemini-1.5-flash
+
+# =====================================
+# OUTPUT FILES
+# =====================================
+SCENE1_FILE=scene1.mp4
+SCENE2_FILE=scene2.mp4
+SCENE3_FILE=scene3.mp4
+SCENE4_FILE=scene4.mp4
+FINAL_VIDEO=final_reel_ad_9x16.mp4
+FINAL_VIDEO_WITH_VOICE=final_video_with_voice.mp4
+OUTPUT_AUDIO=final_voice.mp3
+SAFE_AUDIO=final_voice_safe.mp3
+SRT_OUTPUT=ainsta_caption.srt
+
+# =====================================
+# IMAGEMAGICK PATH (for caption burning)
+# =====================================
+IMAGEMAGICK_BINARY=C:\Program Files\ImageMagick-7.1.2-Q16-HDRI\magick.exe
+
+# =====================================
+# CAPTION BURNING DEFAULTS
+# =====================================
+CAPTION_FONT_NAME=Arial-Bold
+CAPTION_FONT_SIZE=40
+CAPTION_FONT_COLOR=white
+CAPTION_STROKE_COLOR=black
+CAPTION_STROKE_WIDTH=2
+CAPTION_POSITION_X=center
+CAPTION_POSITION_Y=bottom

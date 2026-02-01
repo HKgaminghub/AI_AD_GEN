@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: ai-video-generator
+    env: docker
+    plan: free
+    autoDeploy: false
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DEAPI_KEY
+        sync: false
+      - key: ELEVEN_API_KEY
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash

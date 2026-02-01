@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Media Assets (Generated)
+*.mp4
+*.mp3
+*.wav
+*.srt
+*.png
+*.jpg
+temp_*
+safe_*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,335 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard | AdGen.AI{% endblock %}
+
+{% block content %}
+<div class="container animate-fade">
+    {% if not current_user.is_authenticated %}
+    <div class="hero">
+        <h1>Generate Viral Ads with <br><span>Generative AI</span></h1>
+        <p>Transform your product photos into high-converting video ads in seconds. No editing skills required.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="/signup" class="btn-primary">Get Started for Free</a>
+            <a href="/login" class="btn-outline">Sign In</a>
+        </div>
+    </div>
+
+    <div class="grid-4" style="margin-top: 4rem;">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-bolt" style="color: #fbbf24;"></i></div>
+            <h3>Instant Generation</h3>
+            <p>Get a professional video ad in under 60 seconds.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-microphone" style="color: #818cf8;"></i></div>
+            <h3>AI Voiceover</h3>
+            <p>Realistic naration tailored to your product.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-closed-captioning" style="color: #f472b6;"></i></div>
+            <h3>Smart Captions</h3>
+            <p>Auto-generated Instagram-style captions.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-video" style="color: #10b981;"></i></div>
+            <h3>Premium Output</h3>
+            <p>High-quality 9:16 reels ready for social media.</p>
+        </div>
+    </div>
+    {% else %}
+    <header style="margin-bottom: 3rem; text-align: center;">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">Create New <span
+                style="background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Video
+                Ad</span></h1>
+        <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Upload your product images and our AI
+            will craft a complete video story for you.</p>
+    </header>
+
+    <div class="glass-card">
+        <form id="pipeline-form">
+            <div class="grid-4">
+                {% for i in range(1, 5) %}
+                <div class="upload-container">
+                    <label
+                        style="display: block; margin-bottom: 0.75rem; font-weight: 600; font-size: 0.9rem; color: var(--text-muted);">
+                        Scene {{ i }}{% if i == 1 %} (Hook){% elif i == 4 %} (CTA){% endif %}
+                    </label>
+                    <div class="upload-zone" id="drop-{{ i }}"
+                        onclick="document.getElementById('scene{{ i }}').click()">
+                        <input type="file" id="scene{{ i }}" name="scene{{ i }}" class="file-input"
+                            style="display: none;" accept="image/*" required>
+                        <div class="upload-placeholder" id="placeholder-{{ i }}">
+                            <i class="fas fa-image"
+                                style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--primary);"></i>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">Click to upload</p>
+                        </div>
+                        <div class="upload-preview" id="preview-{{ i }}" style="display: none;">
+                            <img src="" class="upload-preview-img">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="margin-top: 3rem; text-align: center;">
+                <button type="submit" id="generate-btn" class="btn-primary"
+                    style="padding: 1rem 3rem; font-size: 1.1rem;">
+                    <i class="fas fa-magic"></i> Generate Full Video
+                </button>
+            </div>
+        </form>
+
+        <!-- Progress Section -->
+        <div id="status-container" class="status-box" style="display: none;">
+            <div class="glass-card" style="padding: 1.5rem; background: rgba(0,0,0,0.2);">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="spinner"
+                        style="width: 20px; height: 20px; border: 2px solid var(--border); border-top: 2px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;">
+                    </div>
+                    <h4 id="status-message" style="margin: 0; font-size: 1.1rem;">Starting generation...</h4>
+                </div>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div id="log-window" class="log-window">
+                    <!-- Logs will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div id="results-container"
+            style="display: none; margin-top: 4rem; border-top: 1px solid var(--border); padding-top: 4rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 3rem;">
+                <div class="result-video-area">
+                    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-play-circle" style="color: var(--primary);"></i>
+                        Final Result</h3>
+                    <div class="video-container">
+                        <video id="result-video" controls src=""></video>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <a id="download-video" href="#" download class="btn-primary"
+                            style="flex: 1; justify-content: center;">
+                            <i class="fas fa-download"></i> Download Video
+                        </a>
+                        <a id="download-srt" href="#" download class="btn-outline">
+                            <i class="fas fa-closed-captioning"></i> SRT
+                        </a>
+                    </div>
+                </div>
+                <div class="result-info-area">
+                    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-file-alt" style="color: var(--secondary);"></i>
+                        AI Voiceover Script</h3>
+                    <div class="glass-card"
+                        style="padding: 1.5rem; background: rgba(0,0,0,0.2); font-size: 0.95rem; line-height: 1.8; color: var(--text-muted); border-radius: 1rem;">
+                        <p id="result-script" style="white-space: pre-wrap;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .spinner {
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{% if current_user.is_authenticated %}
+<script>
+    // File Previews
+    for (let i = 1; i <= 4; i++) {
+        const input = document.getElementById(`scene${i}`);
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (re) => {
+                    const preview = document.getElementById(`preview-${i}`);
+                    const placeholder = document.getElementById(`placeholder-${i}`);
+                    preview.querySelector('img').src = re.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+    }
+
+    // Pipeline Logic
+    const pipelineForm = document.getElementById('pipeline-form');
+    const statusContainer = document.getElementById('status-container');
+    const resultsContainer = document.getElementById('results-container');
+    const progressBar = document.getElementById('progress-bar');
+    const statusMessage = document.getElementById('status-message');
+    const logWindow = document.getElementById('log-window');
+    const generateBtn = document.getElementById('generate-btn');
+
+    function addLog(msg, type = 'info') {
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        logWindow.appendChild(entry);
+        logWindow.scrollTop = logWindow.scrollHeight;
+    }
+
+    function updateProgress(percent, message) {
+        progressBar.style.width = `${percent}%`;
+        statusMessage.textContent = message;
+        addLog(message);
+    }
+
+    pipelineForm.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+        const sceneFiles = {};
+        for (let i = 1; i <= 4; i++) {
+            const file = document.getElementById(`scene${i}`).files[0];
+            formData.append(`scene${i}`, file);
+            sceneFiles[`scene${i}`] = file;
+        }
+
+        // Reset and Show UI
+        statusContainer.style.display = 'block';
+        resultsContainer.style.display = 'none';
+        logWindow.innerHTML = '';
+        progressBar.style.width = '0%';
+        generateBtn.disabled = true;
+
+        try {
+            // Step 1: Analyze Images
+            updateProgress(10, "Analyzing images and generating scene ideas...");
+            const promptsRes = await fetch('/api/generate-scene-prompts', {
+                method: 'POST',
+                body: formData
+            });
+            const promptsData = await promptsRes.json();
+            if (!promptsData.success) throw new Error(promptsData.error);
+            const scenes = promptsData.scenes;
+            addLog("Scene ideas generated successfully.", "success");
+
+            // Step 2-5: Generate Scenes
+            const sceneKeys = ['scene1', 'scene2', 'scene3', 'scene4'];
+            for (let i = 0; i < sceneKeys.length; i++) {
+                const key = sceneKeys[i];
+                const sceneNum = i + 1;
+                updateProgress(20 + (i * 10), `Generating Video Scene ${sceneNum}...`);
+
+                const sceneFormData = new FormData();
+                sceneFormData.append('scene_key', key);
+                sceneFormData.append('prompt', scenes[key]);
+                sceneFormData.append(key, sceneFiles[key]);
+
+                const sceneRes = await fetch('/api/generate-scene', {
+                    method: 'POST',
+                    body: sceneFormData
+                });
+                const sceneData = await sceneRes.json();
+                if (!sceneData.success) throw new Error(`Scene ${sceneNum} failed: ` + sceneData.error);
+                addLog(`Scene ${sceneNum} generated successfully.`, "success");
+            }
+
+            // Step 6: Merge
+            updateProgress(60, "Merging generated scenes...");
+            const mergeRes = await fetch('/api/merge-scenes', { method: 'POST' });
+            const mergeData = await mergeRes.json();
+            if (!mergeData.success) throw new Error(mergeData.error);
+            addLog("Scenes merged successfully.", "success");
+
+            // Step 7: Voiceover
+            updateProgress(70, "Generating AI voiceover script and audio...");
+            const audioRes = await fetch('/api/generate-voiceover', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ video_path: mergeData.output_file })
+            });
+            const audioData = await audioRes.json();
+            if (!audioData.success) throw new Error(audioData.error);
+            addLog("Voiceover created.", "success");
+
+            // Step 8: Attach
+            updateProgress(80, "Combining voiceover with video...");
+            const attachRes = await fetch('/api/attach-audio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    video_path: mergeData.output_file,
+                    script: audioData.script
+                })
+            });
+            const attachData = await attachRes.json();
+            if (!attachData.success) throw new Error(attachData.error);
+            addLog("Audio attached successfully.", "success");
+
+            // Step 9: Captions
+            updateProgress(90, "Creating Instagram-style captions...");
+            const srtRes = await fetch('/api/generate-captions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ video_path: attachData.output_file })
+            });
+            const srtData = await srtRes.json();
+            if (!srtData.success) throw new Error(srtData.error);
+            addLog("Captions generated.", "success");
+
+            // Step 10: Burn
+            updateProgress(95, "Burning captions into final video...");
+            const burnRes = await fetch('/api/burn-captions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    video_path: attachData.output_file,
+                    srt_path: srtData.srt_file,
+                    output_path: "final_video_with_voice_captions.mp4"
+                })
+            });
+            const burnData = await burnRes.json();
+            if (!burnData.success) throw new Error(burnData.error);
+            addLog("Video fully generated!", "success");
+
+            // Step 11: Leaderboard
+            try {
+                await fetch('/api/increment-video-count', { method: 'POST' });
+                addLog("Leaderboard updated.", "success");
+            } catch (ee) { }
+
+            // Success!
+            updateProgress(100, "Your video is ready!");
+            progressBar.style.background = "#4ade80";
+
+            // Show Result
+            document.getElementById('result-video').src = `/api/download/${burnData.output_file}`;
+            document.getElementById('download-video').href = `/api/download/${burnData.output_file}`;
+            document.getElementById('download-srt').href = `/api/download/${srtData.srt_file}`;
+            document.getElementById('result-script').textContent = audioData.script;
+
+            resultsContainer.style.display = 'block';
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (err) {
+            console.error(err);
+            updateProgress(100, "Generation Failed");
+            addLog(err.message, "error");
+            progressBar.style.background = "#f87171";
+        } finally {
+            generateBtn.disabled = false;
+        }
+    };
+</script>
+{% endif %}
+{% endblock %}
