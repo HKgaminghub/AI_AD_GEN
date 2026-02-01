@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Fix ImageMagick policy to allow Text/PDF operations (often restricted by default)
-# This is crucial for MoviePy's TextClip to work
-RUN sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml
+# Use find to locate policy.xml as the path varies between ImageMagick 6 and 7 (Debian defaults)
+RUN find /etc -name "policy.xml" -exec sed -i 's/none/read,write/g' {} +
 
 WORKDIR /app
 
