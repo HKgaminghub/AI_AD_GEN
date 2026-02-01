@@ -11,9 +11,12 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
-# Fix ImageMagick policy to allow Text/PDF operations (often restricted by default)
-# Use find to locate policy.xml as the path varies between ImageMagick 6 and 7 (Debian defaults)
+# Fix ImageMagick policy to allow Text/PDF operations
 RUN find /etc -name "policy.xml" -exec sed -i 's/none/read,write/g' {} +
+
+# COMPATIBILITY FIX: If 'magick' binary doesn't exist (IM6), link 'convert' to it
+# This ensures /usr/bin/magick always points to a valid executable
+RUN if [ ! -f /usr/bin/magick ]; then ln -s /usr/bin/convert /usr/bin/magick; fi
 
 WORKDIR /app
 
