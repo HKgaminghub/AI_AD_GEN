@@ -29,7 +29,7 @@ def generate_scene_prompts(main_module: Any, temp_images: Dict[str, str]) -> Dic
     original_images = main_module.SCENE_IMAGES.copy()
     main_module.SCENE_IMAGES = temp_images
     try:
-        scenes = main_module.generate_scene_prompts_from_gemini()
+        scenes = main_module.generate_scene_prompts_from_gemini(temp_images)
         return scenes
     finally:
         # Always restore original config
@@ -41,6 +41,7 @@ def generate_single_scene(
     scene_key: str,
     prompt: str,
     temp_image_path: str,
+    output_file: str,
     generate_scene_with_retry,
 ) -> Dict[str, Any]:
     """Generate a single scene video with retry logic.
@@ -50,6 +51,7 @@ def generate_single_scene(
         scene_key: Key identifying the scene (e.g., "scene1")
         prompt: The prompt for scene generation
         temp_image_path: Path to the temporary image for this scene
+        output_file: Path where the generated video should be saved
         generate_scene_with_retry: Retry function for scene generation
 
     Returns:
@@ -60,9 +62,11 @@ def generate_single_scene(
         - error: Error message (if failed)
     """
     try:
-        safe_img = f"safe_{scene_key}.png"
+        # Create safe image in the same directory as temp_image_path
+        dir_name = os.path.dirname(temp_image_path)
+        safe_img = os.path.join(dir_name, f"safe_{scene_key}.png")
+        
         main_module.convert_to_vertical_safe(temp_image_path, safe_img)
-        output_file = main_module.SCENE_FILES.get(scene_key, f"{scene_key}.mp4")
 
         print(f"Generating {scene_key}...")
         success, error_msg = generate_scene_with_retry(
@@ -99,6 +103,7 @@ def generate_all_scenes(
     main_module: Any,
     scenes: Dict[str, str],
     temp_images: Dict[str, str],
+    output_files: Dict[str, str],
     generate_scene_with_retry,
     required_scenes: List[str] = None,
 ) -> List[Dict[str, Any]]:
@@ -108,6 +113,7 @@ def generate_all_scenes(
         main_module: The main module containing scene configuration
         scenes: Dictionary mapping scene keys to prompts
         temp_images: Dictionary mapping scene keys to temporary image paths
+        output_files: Dictionary mapping scene keys to output video paths
         generate_scene_with_retry: Retry function for scene generation
         required_scenes: List of required scene keys (defaults to ["scene1", "scene2", "scene3", "scene4"])
 
@@ -135,6 +141,7 @@ def generate_all_scenes(
             key,
             scenes[key],
             temp_images[key],
+            output_files.get(key, f"{key}.mp4"),
             generate_scene_with_retry,
         )
         scene_results.append(result)
@@ -150,12 +157,14 @@ def generate_all_scenes(
 def merge_scenes(
     main_module: Any,
     scene_results: List[Dict[str, Any]],
+    output_file: str,
 ) -> str:
     """Merge successful scenes into a single video.
 
     Args:
-        main_module: The main module containing TARGET_W, TARGET_H, and FINAL_VIDEO
+        main_module: The main module containing TARGET_W, TARGET_H
         scene_results: List of scene result dictionaries
+        output_file: The path for the final merged video
 
     Returns:
         Path to the merged final video
@@ -180,7 +189,17 @@ def merge_scenes(
     try:
         final = concatenate_videoclips(clips, method="compose")
         final = final.resize((main_module.TARGET_W, main_module.TARGET_H))
-        final.write_videofile(main_module.FINAL_VIDEO, fps=30)
+        
+        # OPTIMIZATION: threads=1 and preset='ultrafast' drastically reduce memory usage
+        # This prevents the "Worker timeout" or "Killed" error on Render free tier
+        final.write_videofile(
+            output_file, 
+            fps=30, 
+            threads=1, 
+            preset='ultrafast',
+            codec='libx264',
+            audio_codec='aac'
+        )
     finally:
         for c in clips:
             try:
@@ -189,8 +208,8 @@ def merge_scenes(
                 pass
 
     print(
-        f"\nSUCCESS: FINAL VIDEO READY: {main_module.FINAL_VIDEO} "
+        f"\nSUCCESS: FINAL VIDEO READY: {output_file} "
         f"(merged {len(successful_scene_files)} scenes)"
     )
 
-    return main_module.FINAL_VIDEO
+    return output_file

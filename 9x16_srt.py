@@ -95,9 +95,10 @@ def convert_to_vertical_safe(image_path, output_path):
 # STEP 1 - GEMINI SCENE PROMPTS
 # =====================================
 
-def generate_scene_prompts_from_gemini():
-
-    images = [Image.open(SCENE_IMAGES[k]) for k in SCENE_IMAGES]
+def generate_scene_prompts_from_gemini(image_paths_dict):
+    # Sort by key to ensure order if needed, though gemini takes list
+    sorted_keys = sorted(image_paths_dict.keys())
+    images = [Image.open(image_paths_dict[k]) for k in sorted_keys]
 
     prompt = """
 You are an elite cinematic advertisement director and AI video engineer.
