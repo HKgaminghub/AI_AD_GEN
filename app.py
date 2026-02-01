@@ -1,3 +1,15 @@
+import os
+import sys
+
+# =====================================
+# CRITICAL CONFIGURATION: MUST RUN BEFORE IMPORTS
+# =====================================
+# Configure ImageMagick path based on OS logic
+# This must happen before 'moviepy' is imported, otherwise it reads the wrong config/env
+if os.name == 'posix': # Linux / Render / Docker
+    os.environ['IMAGEMAGICK_BINARY'] = '/usr/bin/magick'
+    print("CONFIG: Set ImageMagick path to /usr/bin/magick")
+
 from flask import Flask, request, jsonify, send_file, redirect, url_for, render_template, flash
 from flask_cors import CORS
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
