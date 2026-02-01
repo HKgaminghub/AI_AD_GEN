@@ -341,6 +341,8 @@ def generate_scene_prompts():
         
         # Generate prompts using scene_service
         log_step("Sending images to Gemini for prompt generation...", "AI")
+        # Generate prompts using scene_service
+        log_step("Sending images to Gemini for prompt generation...", "AI")
         scenes = scene_service.generate_scene_prompts(main_module, temp_images)
         log_step(f"Prompts generated successfully: {list(scenes.keys())}", "SUCCESS")
         
@@ -408,12 +410,32 @@ def generate_scene():
         
         # Generate scene using retry/rotation logic
         log_step(f"Sending request to DEAPI for {scene_key}...", "API")
-        success, error_msg = generate_scene_with_retry(
-            prompt, 
-            safe_img, 
-            output_file, 
-            max_retries=len(DEAPI_KEYS_LIST) + 1
+        success, error_msg = scene_service.generate_single_scene(
+            main_module,
+            scene_key,
+            prompt,
+            safe_img,
+            output_file,
+            generate_scene_with_retry
         )
+        # Note regarding 'success' variable from scene_service: 
+        # generate_single_scene returns a dict, not tuple. Need to adapt.
+        
+        if success.get("status") == "success":
+             log_step(f"Scene {scene_key} generated successfully: {output_file}", "SUCCESS")
+             # Cleanup handled by generate_scene function wrapper if needed, but here we just return
+        else:
+             error_msg = success.get("error", "Unknown error")
+             log_step(f"Scene {scene_key} generation failed: {error_msg}", "ERROR")
+             return jsonify({"error": f"Error generating scene: {error_msg}"}), 500
+
+        # Legacy cleanup logic from original app.py needs to be preserved or adapted
+        if image_path and "temp_" in image_path and os.path.exists(image_path):
+            os.remove(image_path)
+        if safe_img and os.path.exists(safe_img):
+            os.remove(safe_img)
+            
+        return jsonify({"success": True, "output_file": output_file})
         
         if not success:
             log_step(f"Scene {scene_key} generation failed: {error_msg}", "ERROR")
@@ -477,11 +499,17 @@ def generate_all_scenes():
                     # Use default image path
                     temp_images[scene] = main_module.SCENE_IMAGES.get(scene)
         
+        # Define output files dict
+        output_files = {}
+        for k in ['scene1', 'scene2', 'scene3', 'scene4']:
+            output_files[k] = main_module.SCENE_FILES.get(k, f"{k}.mp4")
+
         # Generate all scenes using scene_service
         results = scene_service.generate_all_scenes(
             main_module,
             scenes,
             temp_images,
+            output_files,
             generate_scene_with_retry,
             required_scenes=['scene1', 'scene2', 'scene3', 'scene4']
         )
@@ -536,7 +564,7 @@ def merge_scenes():
         
         # Use scene_service to merge
         log_step(f"Merging {len(scene_results)} scenes into {main_module.FINAL_VIDEO}...", "MERGE")
-        final_video = scene_service.merge_scenes(main_module, scene_results)
+        final_video = scene_service.merge_scenes(main_module, scene_results, main_module.FINAL_VIDEO)
         log_step(f"Scenes merged successfully: {final_video}", "SUCCESS")
         
         return jsonify({
@@ -621,6 +649,8 @@ def attach_audio():
                 video_path,
                 script,
                 duration,
+                main_module.OUTPUT_AUDIO,
+                main_module.SAFE_AUDIO,
                 output_path
             )
         else:
