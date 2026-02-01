@@ -206,7 +206,13 @@ main_module.WHISPER_MODEL_SIZE = os.getenv('WHISPER_MODEL_SIZE', 'small')
 
 main_module.model = main_module.genai.GenerativeModel(os.getenv('GEMINI_MODEL', 'gemini-2.5-flash'))
 
-imagemagick_path = os.getenv('IMAGEMAGICK_BINARY', r'C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe')
+# Configure ImageMagick path based on OS
+if os.name == 'posix': # Linux / Render / Docker
+    default_im_path = '/usr/bin/magick'
+else: # Windows (Local Dev)
+    default_im_path = r'C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe'
+
+imagemagick_path = os.getenv('IMAGEMAGICK_BINARY', default_im_path)
 caption_module.change_settings({
     "IMAGEMAGICK_BINARY": imagemagick_path
 })
