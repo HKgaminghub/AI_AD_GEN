@@ -228,7 +228,10 @@ STRICT RULES:
     r = model.generate_content([prompt, {"mime_type": "video/mp4", "data": video_bytes}])
     return r.text.strip()
 
-def generate_voice(script_text):
+def generate_voice(script_text, output_path=None):
+    if output_path is None:
+        output_path = OUTPUT_AUDIO
+
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}"
     headers = {
         "Accept": "audio/mpeg",
@@ -246,14 +249,17 @@ def generate_voice(script_text):
         raise Exception(f"ElevenLabs TTS failed: {resp.text}")
     
     audio = resp.content
-    with open(OUTPUT_AUDIO, "wb") as f:
+    with open(output_path, "wb") as f:
         f.write(audio)
 
-def make_audio_safe(audio_path, video_duration):
+def make_audio_safe(audio_path, video_duration, output_path=None):
+    if output_path is None:
+        output_path = SAFE_AUDIO
+
     audio = AudioSegment.from_mp3(audio_path)
     if len(audio) / 1000 < video_duration:
         audio += AudioSegment.silent(duration=int((video_duration * 1000) - len(audio)))
-    audio.export(SAFE_AUDIO, format="mp3")
+    audio.export(output_path, format="mp3")
 
 def attach_audio_to_video(video_path, audio_path, output_path):
     video = VideoFileClip(video_path)
