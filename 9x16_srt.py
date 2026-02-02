@@ -231,7 +231,7 @@ STRICT RULES:
 def generate_voice(script_text, output_path=None):
     if output_path is None:
         output_path = OUTPUT_AUDIO
-
+        
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}"
     headers = {
         "Accept": "audio/mpeg",
