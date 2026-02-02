@@ -192,8 +192,9 @@ def generate_scene(prompt: str, image_path: str, out_file: str):
 def merge_scenes():
     clips = [VideoFileClip(SCENE_FILES[k]) for k in SCENE_FILES]
     final = concatenate_videoclips(clips, method="compose")
-    final = final.resize((TARGET_W, TARGET_H))
-    final.write_videofile(FINAL_VIDEO, fps=30)
+    # Removing redundant resize since source clips are already TARGET_W x TARGET_H
+    # final = final.resize((TARGET_W, TARGET_H)) 
+    final.write_videofile(FINAL_VIDEO, fps=30, threads=8, preset='ultrafast')
     print("\nSUCCESS: FINAL VIDEO READY:", FINAL_VIDEO)
 
 # =====================================
@@ -265,7 +266,7 @@ def attach_audio_to_video(video_path, audio_path, output_path):
     video = VideoFileClip(video_path)
     audio = AudioFileClip(audio_path)
     final = video.set_audio(audio)
-    final.write_videofile(output_path, codec="libx264", audio_codec="aac")
+    final.write_videofile(output_path, codec="libx264", audio_codec="aac", threads=8, preset='ultrafast')
     video.close()
     audio.close()
     final.close()
@@ -327,7 +328,7 @@ def generate_instagram_srt_from_video(video_path, output_srt, max_words=3):
 
 def main():
 
-    scenes = generate_scene_prompts_from_gemini()
+    scenes = generate_scene_prompts_from_gemini(SCENE_IMAGES)
 
     for key in scenes:
         safe_img = f"safe_{key}.png"
